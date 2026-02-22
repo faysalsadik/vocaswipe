@@ -55,14 +55,14 @@
     <!-- Swipe labels -->
     <div 
       class="swipe-label label-learn" 
-      :class="{ visible: swipeDirection === 'right' }"
+      :class="{ visible: swipeDirection === 'right' && swipeProgress >= 1 }"
       :style="labelStyle"
     >
       <span>✓ LEARNED</span>
     </div>
     <div 
       class="swipe-label label-review" 
-      :class="{ visible: swipeDirection === 'left' }"
+      :class="{ visible: swipeDirection === 'left' && swipeProgress >= 1 }"
       :style="labelStyle"
     >
       <span>↺ REVIEW</span>
@@ -166,8 +166,10 @@ const overlayStyle = computed(() => {
 
 const labelStyle = computed(() => {
   const progress = swipeProgress.value;
-  const scale = 0.5 + (progress * 0.5);
-  const opacity = Math.max(0, (progress - 0.3) / 0.7);
+  // Only show label when past threshold (progress >= 1)
+  const isPastThreshold = progress >= 1;
+  const scale = isPastThreshold ? 1 : 0.8;
+  const opacity = isPastThreshold ? 1 : 0;
   
   return {
     opacity,
@@ -280,10 +282,13 @@ const handleSwipeEnd = () => {
   if (!isDragging.value) return;
   
   if (Math.abs(currentX.value) > threshold) {
-    // Swipe successful - animate out
+    const wordId = currentWord.value?.serialNo;
+    // Swipe successful - mark and animate out
     if (currentX.value > threshold) {
+      if (wordId) markAsLearned(wordId);
       animateCardOut('right');
     } else {
+      if (wordId) markAsReview(wordId);
       animateCardOut('left');
     }
   } else {

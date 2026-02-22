@@ -442,6 +442,14 @@ onMounted(() => {
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.6) 0%, rgba(34, 197, 94, 0.2) 100%);
 }
 
+[data-theme="dark"] .card-overlay.left {
+  background: linear-gradient(135deg, rgba(252, 211, 77, 0.5) 0%, rgba(252, 211, 77, 0.15) 100%);
+}
+
+[data-theme="dark"] .card-overlay.right {
+  background: linear-gradient(135deg, rgba(110, 231, 183, 0.5) 0%, rgba(110, 231, 183, 0.15) 100%);
+}
+
 .swipe-label {
   position: absolute;
   bottom: 10%;
@@ -482,16 +490,28 @@ onMounted(() => {
 
 .label-learn {
   color: var(--color-learned);
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   border-color: var(--color-learned);
   box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
 }
 
 .label-review {
-  color: #eab308;
-  background: rgba(255, 255, 255, 0.9);
-  border-color: #eab308;
+  color: #ca8a04;
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #ca8a04;
   box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
+}
+
+[data-theme="dark"] .label-learn {
+  background: rgba(30, 30, 30, 0.95);
+  color: #6EE7B7;
+  border-color: #6EE7B7;
+}
+
+[data-theme="dark"] .label-review {
+  background: rgba(30, 30, 30, 0.95);
+  color: #FCD34D;
+  border-color: #FCD34D;
 }
 
 .empty-wrapper {

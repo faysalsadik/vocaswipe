@@ -93,7 +93,6 @@ onMounted(() => {
 
 .app-header {
   padding: var(--space-md);
-  padding-top: calc(env(safe-area-inset-top, 10px) + var(--space-md));
   display: flex;
   align-items: center;
   justify-content: space-between;

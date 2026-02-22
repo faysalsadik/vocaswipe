@@ -55,14 +55,14 @@
     <!-- Swipe labels -->
     <div 
       class="swipe-label label-learn" 
-      :class="{ visible: swipeDirection === 'right' && swipeProgress >= 1 }"
+      :class="{ visible: swipeDirection === 'right' && swipeProgress >= 0.5 }"
       :style="labelStyle"
     >
       <span>✓ LEARNED</span>
     </div>
     <div 
       class="swipe-label label-review" 
-      :class="{ visible: swipeDirection === 'left' && swipeProgress >= 1 }"
+      :class="{ visible: swipeDirection === 'left' && swipeProgress >= 0.5 }"
       :style="labelStyle"
     >
       <span>↺ REVIEW</span>
@@ -166,10 +166,10 @@ const overlayStyle = computed(() => {
 
 const labelStyle = computed(() => {
   const progress = swipeProgress.value;
-  // Only show label when past threshold (progress >= 1)
-  const isPastThreshold = progress >= 1;
-  const scale = isPastThreshold ? 1 : 0.8;
-  const opacity = isPastThreshold ? 1 : 0;
+  // Show label when past 50% of threshold (about 45 degree tilt)
+  const isPastThreshold = progress >= 0.5;
+  const scale = isPastThreshold ? 0.8 + (progress * 0.4) : 0.5;
+  const opacity = isPastThreshold ? progress : 0;
   
   return {
     opacity,
@@ -464,6 +464,25 @@ onMounted(() => {
 
 .swipe-label.visible {
   opacity: 1;
+}
+
+.label-learn {
+  left: auto;
+  right: 10%;
+  transform: translate(0, -50%) scale(0.5);
+}
+
+.label-learn.visible {
+  transform: translate(0, -50%) scale(1);
+}
+
+.label-review {
+  left: 10%;
+  transform: translate(0, -50%) scale(0.5);
+}
+
+.label-review.visible {
+  transform: translate(0, -50%) scale(1);
 }
 
 .label-learn {

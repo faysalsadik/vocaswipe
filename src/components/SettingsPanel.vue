@@ -105,8 +105,8 @@ const { words, vocabularyRange, setVocabularyRange } = useWords();
 
 const isOpen = ref(false);
 const isDark = ref(false);
-const currentFontSize = ref('medium');
-const showMeaning = ref(false);
+const currentFontSize = ref('small');
+const showMeaning = ref(true);
 const showExample = ref(true);
 
 const maxWords = computed(() => words.value.length > 0 ? words.value.length : 1475);
@@ -192,17 +192,27 @@ onMounted(() => {
   if (savedFontSize) {
     currentFontSize.value = savedFontSize;
     document.documentElement.setAttribute('data-font-size', savedFontSize);
+  } else {
+    // Apply default font size (small)
+    document.documentElement.setAttribute('data-font-size', 'small');
   }
 
   const savedShowMeaning = localStorage.getItem('vocaswipe_showmeaning');
   if (savedShowMeaning === 'true') {
     showMeaning.value = true;
+  } else if (!savedShowMeaning) {
+    // Default to auto reveal on
+    showMeaning.value = true;
+    localStorage.setItem('vocaswipe_showmeaning', 'true');
   }
 
   const savedShowExample = localStorage.getItem('vocaswipe_showexample');
   if (savedShowExample === 'false') {
     showExample.value = false;
   }
+  
+  // Dispatch event for reveal
+  window.dispatchEvent(new CustomEvent('show-meaning-changed', { detail: showMeaning.value }));
   
   // Sync initial slider values - default to all words if no valid range saved
   let storedMin = vocabularyRange.value[0];

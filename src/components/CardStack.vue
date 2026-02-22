@@ -56,14 +56,12 @@
     <div 
       class="swipe-label label-learn" 
       :class="{ visible: swipeDirection === 'right' && swipeProgress >= 0.5 }"
-      :style="labelStyle"
     >
       <span>✓ LEARNED</span>
     </div>
     <div 
       class="swipe-label label-review" 
       :class="{ visible: swipeDirection === 'left' && swipeProgress >= 0.5 }"
-      :style="labelStyle"
     >
       <span>↺ REVIEW</span>
     </div>
@@ -153,27 +151,26 @@ const overlayStyle = computed(() => {
   
   if (swipeDirection.value === 'right') {
     return { 
-      opacity: progress * 0.4,
-      background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.1) 100%)'
+      opacity: progress * 0.6,
+      background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.5) 0%, rgba(34, 197, 94, 0.15) 100%)'
     };
   } else {
     return { 
-      opacity: progress * 0.4,
-      background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.1) 100%)'
+      opacity: progress * 0.6,
+      background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.5) 0%, rgba(234, 179, 8, 0.15) 100%)'
     };
   }
 });
 
 const labelStyle = computed(() => {
   const progress = swipeProgress.value;
-  // Show label when past 50% of threshold (about 45 degree tilt)
   const isPastThreshold = progress >= 0.5;
   const scale = isPastThreshold ? 0.8 + (progress * 0.4) : 0.5;
   const opacity = isPastThreshold ? progress : 0;
   
   return {
     opacity,
-    transform: `translate(-50%, -50%) scale(${scale})`
+    transform: `translate(-50%, 0) scale(${scale})`
   };
 });
 
@@ -438,21 +435,19 @@ onMounted(() => {
 }
 
 .card-overlay.left {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.4) 0%, rgba(239, 68, 68, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.6) 0%, rgba(234, 179, 8, 0.2) 100%);
 }
 
 .card-overlay.right {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.4) 0%, rgba(34, 197, 94, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.6) 0%, rgba(34, 197, 94, 0.2) 100%);
 }
 
 .swipe-label {
   position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.5);
-  padding: var(--space-md) var(--space-xl);
+  bottom: 10%;
+  padding: var(--space-sm) var(--space-lg);
   border-radius: var(--radius-lg);
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: 2px;
   opacity: 0;
@@ -460,6 +455,7 @@ onMounted(() => {
   z-index: 100;
   white-space: nowrap;
   border: 3px solid;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .swipe-label.visible {
@@ -467,22 +463,21 @@ onMounted(() => {
 }
 
 .label-learn {
-  left: auto;
-  right: 10%;
-  transform: translate(0, -50%) scale(0.5);
+  right: 5%;
+  transform: scale(0.8);
 }
 
 .label-learn.visible {
-  transform: translate(0, -50%) scale(1);
+  transform: scale(1);
 }
 
 .label-review {
-  left: 10%;
-  transform: translate(0, -50%) scale(0.5);
+  left: 5%;
+  transform: scale(0.8);
 }
 
 .label-review.visible {
-  transform: translate(0, -50%) scale(1);
+  transform: scale(1);
 }
 
 .label-learn {
@@ -493,10 +488,10 @@ onMounted(() => {
 }
 
 .label-review {
-  color: var(--color-review);
+  color: #eab308;
   background: rgba(255, 255, 255, 0.9);
-  border-color: var(--color-review);
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+  border-color: #eab308;
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
 }
 
 .empty-wrapper {

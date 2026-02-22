@@ -10,11 +10,29 @@
     @mouseup="handleMouseUp"
     @mouseleave="handleMouseUp"
   >
+    <!-- Next card (behind) -->
+    <div 
+      v-if="nextWord"
+      class="card-wrapper next-card"
+    >
+      <WordCard
+        :word="nextWord"
+        :is-bookmarked="isNextBookmarked"
+      />
+    </div>
+
+    <!-- Current card -->
     <div 
       class="card-wrapper"
+      :class="{ 
+        'swiping-left': swipeDirection === 'left', 
+        'swiping-right': swipeDirection === 'right',
+        'is-animating': isAnimating
+      }"
       :style="cardStyle"
       v-if="currentWord"
     >
+      <div class="card-overlay" :class="swipeDirection" :style="overlayStyle"></div>
       <WordCard
         ref="cardRef"
         :word="currentWord"
@@ -34,9 +52,20 @@
       </div>
     </div>
 
-    <div v-if="swipeDirection" class="swipe-overlay" :class="swipeDirection">
-      <span v-if="swipeDirection === 'left'">↺ Review</span>
-      <span v-else-if="swipeDirection === 'right'">✓ Learned</span>
+    <!-- Swipe labels -->
+    <div 
+      class="swipe-label label-learn" 
+      :class="{ visible: swipeDirection === 'right' }"
+      :style="labelStyle"
+    >
+      <span>✓ LEARNED</span>
+    </div>
+    <div 
+      class="swipe-label label-review" 
+      :class="{ visible: swipeDirection === 'left' }"
+      :style="labelStyle"
+    >
+      <span>↺ REVIEW</span>
     </div>
   </div>
 </template>
@@ -76,6 +105,8 @@ const startY = ref(0);
 const currentX = ref(0);
 const isDragging = ref(false);
 const swipeDirection = ref(null);
+const isAnimating = ref(false);
+const threshold = 100;
 
 const currentWords = computed(() => {
   switch (props.mode) {
@@ -96,9 +127,52 @@ const currentWord = computed(() => {
   return currentWords.value[idx];
 });
 
+const nextWord = computed(() => {
+  if (currentWords.value.length <= 1) return null;
+  const nextIdx = (currentIndex.value + 1) % currentWords.value.length;
+  return currentWords.value[nextIdx];
+});
+
 const isCurrentBookmarked = computed(() => {
   if (!currentWord.value) return false;
   return getWordState(currentWord.value.serialNo).bookmarked;
+});
+
+const isNextBookmarked = computed(() => {
+  if (!nextWord.value) return false;
+  return getWordState(nextWord.value.serialNo).bookmarked;
+});
+
+const swipeProgress = computed(() => {
+  return Math.min(Math.abs(currentX.value) / threshold, 1);
+});
+
+const overlayStyle = computed(() => {
+  const progress = swipeProgress.value;
+  if (!swipeDirection.value) return { opacity: 0 };
+  
+  if (swipeDirection.value === 'right') {
+    return { 
+      opacity: progress * 0.4,
+      background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.1) 100%)'
+    };
+  } else {
+    return { 
+      opacity: progress * 0.4,
+      background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.1) 100%)'
+    };
+  }
+});
+
+const labelStyle = computed(() => {
+  const progress = swipeProgress.value;
+  const scale = 0.5 + (progress * 0.5);
+  const opacity = Math.max(0, (progress - 0.3) / 0.7);
+  
+  return {
+    opacity,
+    transform: `translate(-50%, -50%) scale(${scale})`
+  };
 });
 
 const emptyTitle = computed(() => {
@@ -120,14 +194,13 @@ const emptyMessage = computed(() => {
 });
 
 const cardStyle = computed(() => {
-  if (!isDragging.value || !currentX.value) return {};
+  if (!isDragging.value && !isAnimating.value) return {};
   
-  const rotate = currentX.value * 0.06; // slightly more rotation for better physics
-  const opacity = 1 - (Math.abs(currentX.value) / window.innerWidth);
+  const rotate = currentX.value * 0.04;
+  const scale = 1 - (Math.abs(currentX.value) / window.innerWidth * 0.1);
   
   return {
-    transform: `translateX(${currentX.value}px) rotate(${rotate}deg)`,
-    opacity: Math.max(opacity, 0.1)
+    transform: `translateX(${currentX.value}px) rotate(${rotate}deg) scale(${Math.max(scale, 0.9)})`
   };
 });
 
@@ -206,30 +279,58 @@ const updateSwipeDirection = () => {
 const handleSwipeEnd = () => {
   if (!isDragging.value) return;
   
-  const threshold = 100;
-  
-  if (currentX.value > threshold) {
-    handleLearn(currentWord.value?.serialNo);
-  } else if (currentX.value < -threshold) {
-    handleReview(currentWord.value?.serialNo);
+  if (Math.abs(currentX.value) > threshold) {
+    // Swipe successful - animate out
+    if (currentX.value > threshold) {
+      animateCardOut('right');
+    } else {
+      animateCardOut('left');
+    }
+  } else {
+    // Swipe cancelled - spring back to center
+    springBack();
   }
   
-  currentX.value = 0;
   isDragging.value = false;
-  swipeDirection.value = null;
+};
+
+const springBack = async () => {
+  isAnimating.value = true;
+  const startX = currentX.value;
+  const duration = 300;
+  const startTime = performance.now();
+  
+  const animate = (currentTime) => {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    
+    // Ease out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    currentX.value = startX * (1 - eased);
+    
+    updateSwipeDirection();
+    
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      currentX.value = 0;
+      swipeDirection.value = null;
+      isAnimating.value = false;
+    }
+  };
+  
+  requestAnimationFrame(animate);
 };
 
 const handleLearn = (wordId) => {
   if (wordId) {
     markAsLearned(wordId);
-    animateCardOut('right');
   }
 };
 
 const handleReview = (wordId) => {
   if (wordId) {
     markAsReview(wordId);
-    animateCardOut('left');
   }
 };
 
@@ -242,34 +343,36 @@ const handleRoot = (root) => {
 };
 
 const animateCardOut = async (direction) => {
-  const finalX = direction === 'right' ? window.innerWidth : -window.innerWidth;
-  
-  const card = stackRef.value?.querySelector('.card-wrapper');
-  if (card) {
-    card.style.transition = 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
-    card.style.transform = `translateX(${finalX}px) rotate(${finalX * 0.05}deg)`;
-    card.style.opacity = '0';
-  }
+  isAnimating.value = true;
+  const startX = currentX.value;
+  const finalX = direction === 'right' ? window.innerWidth * 1.5 : -window.innerWidth * 1.5;
+  const duration = 250;
+  const startTime = performance.now();
   
   try {
     await Haptics.impact({ style: ImpactStyle.Heavy });
   } catch(err) {}
   
-  setTimeout(() => {
-    // If we're marking as 'learned' or 'review', the current array shrinks.
-    // So we shouldn't increment currentIndex if the item was removed.
-    // However, if we swipe something that doesn't disappear from the current mode
-    // (like if we're in "bookmarks" and mark as learned, it stays bookmarked),
-    // we would theoretically need to skip it. But actually, "markAsLearned" only changes state,
-    // so if the current mode filters it out, the length shrinks.
-    // Let's just reset the style and rely on Vue reactivity to show the next card.
+  const animate = (currentTime) => {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
     
-    if (card) {
-      card.style.transition = '';
-      card.style.transform = '';
-      card.style.opacity = '';
+    // Ease in cubic
+    const eased = progress * progress * progress;
+    currentX.value = startX + (finalX - startX) * eased;
+    
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      // Animation complete - reset state
+      currentX.value = 0;
+      swipeDirection.value = null;
+      isAnimating.value = false;
+      currentIndex.value++;
     }
-  }, 300);
+  };
+  
+  requestAnimationFrame(animate);
 };
 
 onMounted(() => {
@@ -295,6 +398,81 @@ onMounted(() => {
   transition: transform 0.1s ease-out;
   position: relative;
   z-index: 2;
+}
+
+.card-wrapper.next-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: scale(0.92) translateY(10px);
+  z-index: 1;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.card-wrapper.swiping-left,
+.card-wrapper.swiping-right {
+  z-index: 10;
+}
+
+.card-wrapper.is-animating {
+  transition: none;
+}
+
+.card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: var(--radius-xl);
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.card-overlay.left {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.4) 0%, rgba(239, 68, 68, 0.1) 100%);
+}
+
+.card-overlay.right {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.4) 0%, rgba(34, 197, 94, 0.1) 100%);
+}
+
+.swipe-label {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  padding: var(--space-md) var(--space-xl);
+  border-radius: var(--radius-lg);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+  border: 3px solid;
+}
+
+.swipe-label.visible {
+  opacity: 1;
+}
+
+.label-learn {
+  color: var(--color-learned);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--color-learned);
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+}
+
+.label-review {
+  color: var(--color-review);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--color-review);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
 }
 
 .empty-wrapper {
@@ -334,38 +512,5 @@ onMounted(() => {
 
 .empty-state p {
   color: var(--text-muted);
-}
-
-.swipe-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: var(--space-md) var(--space-xl);
-  border-radius: var(--radius-lg);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: white;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  z-index: 100;
-}
-
-.swipe-overlay.left {
-  background: var(--color-review);
-}
-
-.swipe-overlay.right {
-  background: var(--color-learned);
-}
-
-.swipe-overlay:not(.swipe-overlay) {
-  opacity: 0;
-}
-
-.swipe-overlay.left:not(.left),
-.swipe-overlay.right:not(.right) {
-  opacity: 0;
 }
 </style>

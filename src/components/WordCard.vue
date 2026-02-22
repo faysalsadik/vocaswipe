@@ -27,16 +27,16 @@
       <span class="frequency">{{ frequencyLabel }}</span>
     </div>
 
-    <div class="ayah-section" v-if="showExample">
-      <div class="ayah-ref">{{ exampleRef }}</div>
-      <div class="ayah-text" v-html="highlightedAyah"></div>
-    </div>
-
     <div class="meaning-section" :class="{ 'is-revealed': meaningRevealed }">
       <button class="reveal-btn" @click.stop="toggleMeaning">
         <span v-if="!meaningRevealed">Tap to reveal meaning</span>
         <span v-else>{{ word.meaning }}</span>
       </button>
+    </div>
+
+    <div class="ayah-section" v-if="showExample">
+      <div class="ayah-ref">{{ exampleRef }}</div>
+      <div class="ayah-text" v-html="highlightedAyah"></div>
     </div>
 
     <div class="swipe-hints">
@@ -276,7 +276,7 @@ defineExpose({ handleSwipe });
   border-radius: var(--radius-md);
   padding: var(--space-md);
   margin-bottom: var(--space-lg);
-  min-height: 30vh;
+  min-height: 20vh;
 }
 
 .ayah-ref {
@@ -302,7 +302,6 @@ defineExpose({ handleSwipe });
 }
 
 .meaning-section {
-  margin-top: auto;
   margin-bottom: var(--space-lg);
 }
 

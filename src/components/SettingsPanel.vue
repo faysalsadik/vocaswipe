@@ -131,7 +131,9 @@ const applyVocabularyRange = () => {
     localMin.value = localMax.value;
     localMax.value = temp;
   }
-  setVocabularyRange(localMin.value, localMax.value >= maxWords.value ? Infinity : localMax.value);
+  // Use null to represent "all words" instead of Infinity
+  const maxVal = localMax.value >= maxWords.value ? null : localMax.value;
+  setVocabularyRange(localMin.value, maxVal);
 };
 
 const fontSizes = [
@@ -202,11 +204,17 @@ onMounted(() => {
     showExample.value = false;
   }
   
-  // Sync initial slider values
-  const storedMin = vocabularyRange.value[0];
-  const storedMax = vocabularyRange.value[1] === Infinity ? maxWords.value : Math.min(vocabularyRange.value[1], maxWords.value);
+  // Sync initial slider values - default to all words if no valid range saved
+  let storedMin = vocabularyRange.value[0];
+  let storedMax = vocabularyRange.value[1];
+  
+  // If no valid saved range (Infinity), default to all words
+  if (storedMax === Infinity || storedMax === null || storedMax === undefined) {
+    storedMax = maxWords.value;
+  }
+  
   localMin.value = storedMin;
-  localMax.value = storedMax || maxWords.value;
+  localMax.value = storedMax;
 });
 </script>
 

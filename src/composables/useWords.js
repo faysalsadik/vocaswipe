@@ -6,7 +6,7 @@ const RANGE_STORAGE_KEY = 'vocaswipe_vocab_range';
 const words = ref([]);
 const wordStates = ref({});
 const currentIndex = ref(0);
-const vocabularyRange = ref([1, Infinity]);
+const vocabularyRange = ref([1, null]); // Use null instead of Infinity for "all"
 
 const loadFromStorage = () => {
   try {
@@ -20,17 +20,12 @@ const loadFromStorage = () => {
     if (storedRange) {
       try {
         const parsed = JSON.parse(storedRange);
-        vocabularyRange.value = Array.isArray(parsed) && parsed.length === 2 ? parsed : [1, Infinity];
+        vocabularyRange.value = Array.isArray(parsed) && parsed.length === 2 ? parsed : [1, null];
       } catch (e) {
-        vocabularyRange.value = [1, Infinity];
-      }
-    } else {
-      // Fallback migration from old single limit
-      const storedLimit = localStorage.getItem('vocaswipe_vocab_limit');
-      if (storedLimit) {
-        vocabularyRange.value = [1, parseInt(storedLimit, 10) || Infinity];
+        vocabularyRange.value = [1, null];
       }
     }
+    // If no saved range, leave as [1, null] - will be set to all words when words load
   } catch (e) {
     console.error('Failed to load progress:', e);
   }
@@ -49,45 +44,57 @@ const saveToStorage = () => {
 
 loadFromStorage();
 
+// Set default range to all words when words are loaded
+watch(words, (newWords) => {
+  if (newWords.length > 0 && vocabularyRange.value[1] === null) {
+    vocabularyRange.value = [1, newWords.length];
+  }
+}, { immediate: true });
+
 const getWordState = (wordId) => {
   return wordStates.value[wordId] || { status: 'new', bookmarked: false };
 };
 
 const getNewWords = computed(() => {
+  const maxRange = vocabularyRange.value[1] ?? words.value.length;
   return words.value.filter(w => {
-    if (w.serialNo < vocabularyRange.value[0] || w.serialNo > vocabularyRange.value[1]) return false;
+    if (w.serialNo < vocabularyRange.value[0] || w.serialNo > maxRange) return false;
     const state = getWordState(w.serialNo);
     return state.status === 'new';
   });
 });
 
 const getLearnedWords = computed(() => {
+  const maxRange = vocabularyRange.value[1] ?? words.value.length;
   return words.value.filter(w => {
-    if (w.serialNo < vocabularyRange.value[0] || w.serialNo > vocabularyRange.value[1]) return false;
+    if (w.serialNo < vocabularyRange.value[0] || w.serialNo > maxRange) return false;
     const state = getWordState(w.serialNo);
     return state.status === 'learned';
   });
 });
 
 const getReviewWords = computed(() => {
+  const maxRange = vocabularyRange.value[1] ?? words.value.length;
   return words.value.filter(w => {
-    if (w.serialNo < vocabularyRange.value[0] || w.serialNo > vocabularyRange.value[1]) return false;
+    if (w.serialNo < vocabularyRange.value[0] || w.serialNo > maxRange) return false;
     const state = getWordState(w.serialNo);
     return state.status === 'review';
   });
 });
 
 const getBookmarkedWords = computed(() => {
+  const maxRange = vocabularyRange.value[1] ?? words.value.length;
   return words.value.filter(w => {
-    if (w.serialNo < vocabularyRange.value[0] || w.serialNo > vocabularyRange.value[1]) return false;
+    if (w.serialNo < vocabularyRange.value[0] || w.serialNo > maxRange) return false;
     const state = getWordState(w.serialNo);
     return state.bookmarked;
   });
 });
 
 const getProgress = computed(() => {
+  const maxRange = vocabularyRange.value[1] ?? words.value.length;
   const filteredWords = words.value.filter(w =>
-    w.serialNo >= vocabularyRange.value[0] && w.serialNo <= vocabularyRange.value[1]
+    w.serialNo >= vocabularyRange.value[0] && w.serialNo <= maxRange
   );
   return {
     total: filteredWords.length,

@@ -1,20 +1,23 @@
-# VocaScroll - Project Agent Guidelines
+# VocaSwipe - Project Agent Guidelines
 
 ## Project Overview
 
-VocaScroll is a Quranic Arabic vocabulary learning mobile app built with Vue 3 and Capacitor. Users learn Arabic words as they scroll through flashcards, with features like:
+VocaSwipe is a Quranic Arabic vocabulary learning mobile app built with Vue 3 and Capacitor. Users learn Arabic words as they scroll through flashcards, with features like:
 - **Flow Mode**: Swipe through vocabulary cards in a flow
 - **Flashcard Mode**: Classic flip cards for memorization
 - **Root Explorer**: Explore Arabic word roots and their derivatives
-- **Progress Tracking**: Track learning progress
-- **Settings**: Customize the learning experience
+- **Progress Tracking**: Track learning progress (New, Learned, Review)
+- **Swipe Gestures**: Tinder-like swipe animations to mark words
+- **Dark Mode**: Full dark mode support
+- **Settings**: Customize font size, auto-reveal, focus range
 
 ## Tech Stack
 
 - **Frontend**: Vue 3 + Vite
 - **Mobile Framework**: Capacitor 8
 - **Platform**: Android (iOS support can be added)
-- **Language**: TypeScript/JavaScript
+- **Language**: JavaScript/TypeScript
+- **Plugins**: @capacitor/haptics, @capacitor/status-bar
 
 ## Build Commands
 
@@ -22,10 +25,13 @@ VocaScroll is a Quranic Arabic vocabulary learning mobile app built with Vue 3 a
 - Node.js 18+
 - Android Studio with Android SDK (for Android builds)
 
+### Installation
+```bash
+npm install
+```
+
 ### Development
 ```bash
-cd vocascroll-app
-
 # Start dev server
 npm run dev
 
@@ -56,7 +62,7 @@ cd android
 
 ### Direct Capacitor Commands
 ```bash
-# Open Android Studio
+# Run on Android device/emulator
 npm run cap:run
 # or
 npx cap run android
@@ -68,20 +74,27 @@ npx cap open android
 ## Project Structure
 
 ```
-vocascroll-app/
-├── src/
-│   ├── assets/          # CSS and static assets
-│   ├── components/       # Vue components
-│   ├── composables/     # Vue composables (useWords, etc.)
-│   ├── App.vue          # Main app component
-│   └── main.ts          # Entry point
+vocaswipe/
 ├── public/
-│   └── words.json       # Vocabulary data
+│   └── words.json       # Vocabulary data (~1,475 words)
+├── src/
+│   ├── assets/
+│   │   ├── base.css     # Global styles
+│   │   └── variables.css # CSS variables & themes
+│   ├── components/
+│   │   ├── CardStack.vue    # Swipeable card stack
+│   │   ├── SettingsPanel.vue # Settings panel
+│   │   └── WordCard.vue      # Word card component
+│   ├── composables/
+│   │   └── useWords.js   # Word state management
+│   ├── App.vue           # Main app component
+│   └── main.ts          # Entry point
 ├── android/             # Android native project
 ├── dist/                # Built web assets
 ├── package.json
-├── vite.config.ts
-└── capacitor.config.json
+├── vite.config.js
+├── capacitor.config.json
+└── README.md
 ```
 
 ## Output APK Location
@@ -91,12 +104,12 @@ vocascroll-app/
 
 ## Key Files
 
-- `capacitor.config.json`: App ID (com.vocascroll.app), app name, plugins config
+- `capacitor.config.json`: App ID (com.vocaswipe.app), app name, plugins config
 - `public/words.json`: Quranic Arabic vocabulary data
-- `src/composables/useWords.ts`: Word loading and state management
+- `src/composables/useWords.js`: Word loading and state management
 
 ## Notes
 
 - The app uses Capacitor 8 with Vue 3 + Vite
 - Android SDK API 34+ recommended
-- The `www` folder is the web build output, synced to Android assets
+- The `dist` folder is the web build output, synced to Android assets

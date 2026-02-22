@@ -86,7 +86,7 @@
             />
             <div class="slider-marks">
               <span>1</span>
-              <span>All</span>
+              <span>{{ maxWords }}</span>
             </div>
           </div>
         </div>
@@ -112,10 +112,16 @@ const showExample = ref(true);
 const maxWords = computed(() => words.value.length > 0 ? words.value.length : 1475);
 
 const localMin = ref(1);
-const localMax = ref(1475);
+const localMax = ref(null);
 
 const currentMaxLabel = computed(() => {
-  return localMax.value >= maxWords.value ? 'All' : localMax.value;
+  return localMax.value >= maxWords.value ? maxWords.value : localMax.value;
+});
+
+watch(maxWords, (newVal) => {
+  if (localMax.value === null) {
+    localMax.value = newVal;
+  }
 });
 
 const applyVocabularyRange = () => {
@@ -197,8 +203,10 @@ onMounted(() => {
   }
   
   // Sync initial slider values
-  localMin.value = vocabularyRange.value[0];
-  localMax.value = vocabularyRange.value[1] === Infinity ? maxWords.value : Math.min(vocabularyRange.value[1], maxWords.value);
+  const storedMin = vocabularyRange.value[0];
+  const storedMax = vocabularyRange.value[1] === Infinity ? maxWords.value : Math.min(vocabularyRange.value[1], maxWords.value);
+  localMin.value = storedMin;
+  localMax.value = storedMax || maxWords.value;
 });
 </script>
 

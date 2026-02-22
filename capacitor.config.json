@@ -1,0 +1,11 @@
+{
+"appId": "com.vocaswipe.app",
+  "appName": "VocaSwipe",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

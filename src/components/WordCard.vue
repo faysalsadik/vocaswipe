@@ -39,9 +39,13 @@
       <div class="ayah-text" v-html="highlightedAyah"></div>
     </div>
 
-    <div class="swipe-hints">
-      <span class="hint-left">← Review</span>
-      <span class="hint-right">Learn →</span>
+    <div class="action-labels">
+      <span class="action-label review-label">
+        <span class="label-icon">⟵</span> Review
+      </span>
+      <span class="action-label learn-label">
+        Learn <span class="label-icon">⟶</span>
+      </span>
     </div>
 
     <div v-if="swipeFeedback" class="swipe-feedback" :class="swipeFeedback">
@@ -337,6 +341,37 @@ defineExpose({ handleSwipe });
   color: var(--text-muted);
   font-size: 0.75rem;
   padding: var(--space-sm) 0;
+}
+
+.action-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-sm);
+  margin-top: auto;
+}
+
+.action-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--bg-primary);
+}
+
+.review-label {
+  color: #ca8a04;
+}
+
+.learn-label {
+  color: var(--color-learned);
+}
+
+.label-icon {
+  font-size: 1rem;
 }
 
 .swipe-feedback {

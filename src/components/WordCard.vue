@@ -277,6 +277,9 @@ defineExpose({ handleSwipe });
   padding: var(--space-md);
   margin-bottom: var(--space-lg);
   min-height: 20vh;
+  max-height: 40vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .ayah-ref {
